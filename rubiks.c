@@ -118,6 +118,7 @@ static void getFacePart(RubiksCube *cube, RubiksFacePart fp, RubiksColor colors[
   }
 }
 
+// Cola uma parte de uma face do cubo em outra
 static void setFacePart(RubiksCube *cube, RubiksFacePart fp, RubiksColor colors[3]) {
   int offset;
   int stride;
@@ -137,6 +138,7 @@ static void setFacePart(RubiksCube *cube, RubiksFacePart fp, RubiksColor colors[
   }
 }
 
+// Rotaciona uma face do cubo por si só no sentido horário
 static void rotateFace(RubiksCube *cube, RubiksRotation f) {
   // Rotação no sentido horário
   int rotMap[9] = {
@@ -159,7 +161,6 @@ void rotateCube(RubiksCube *cube, RubiksRotation r, int reversed) {
   RubiksColor colors[3];
   RubiksColor last[3];
 
-
   if (reversed) {
     // Jeito preguiçoso de fazer rotação reversa:
     // Faça a mesma rotação 3x
@@ -167,14 +168,17 @@ void rotateCube(RubiksCube *cube, RubiksRotation r, int reversed) {
       rotateCube(cube, r, 0);
     }
   } else if (r == kx) {
+    // x = R M' L'
     rotateCube(cube, kR, 0);
     rotateCube(cube, kM, 1);
     rotateCube(cube, kL, 1);
   } else if (r == ky) {
+    // y = U E' D'
     rotateCube(cube, kU, 0);
     rotateCube(cube, kE, 1);
     rotateCube(cube, kD, 1);
   } else if (r == kz) {
+    // z = F S B'
     rotateCube(cube, kF, 0);
     rotateCube(cube, kS, 0);
     rotateCube(cube, kB, 1);
