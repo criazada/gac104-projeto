@@ -34,7 +34,7 @@ Uma rotação completa é, então, a rotação em si de uma face e a movimentaç
 Rotações no sentido anti-horário são implementadas realizando a equivalente no sentido horário 3 vezes.
 X' significa rotação X no sentido anti-horário.
 
-Rotações x, y e z são implementadas como composições de outras rotações. São elas para cada um:
+Rotações x, y e z são implementadas como composições de outras rotações. São elas:
 - x = R M' L'
 - y = U E' D'
 - z = F S B
