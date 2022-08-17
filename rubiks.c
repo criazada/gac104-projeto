@@ -25,83 +25,34 @@ void resetCube(RubiksCube *cube) {
 // exceto as U e D
 //
 // A ordem de troca das faces também é levada em consideração
-#define RFP(F, R, Rev) ((RubiksFacePart) { F, R, Rev })
 static void relevantFacesParts(RubiksRotation r, RubiksFacePart fps[4]) {
-  if (0) {
-  } else if (r == kU) {
-    fps[0] = RFP(kF, kU, 0);
-    fps[1] = RFP(kL, kU, 0);
-    fps[2] = RFP(kB, kU, 0);
-    fps[3] = RFP(kR, kU, 0);
-  } else if (r == kD) {
-    fps[0] = RFP(kF, kD, 0);
-    fps[1] = RFP(kR, kD, 0);
-    fps[2] = RFP(kB, kD, 0);
-    fps[3] = RFP(kL, kD, 0);
-  } else if (r == kR) {
-    fps[0] = RFP(kF, kR, 0);
-    fps[1] = RFP(kU, kR, 0);
-    fps[2] = RFP(kB, kL, 1);
-    fps[3] = RFP(kD, kR, 1);
-  } else if (r == kL) {
-    fps[0] = RFP(kF, kL, 0);
-    fps[1] = RFP(kD, kL, 0);
-    fps[2] = RFP(kB, kR, 1);
-    fps[3] = RFP(kU, kL, 1);
-  } else if (r == kF) {
-    fps[0] = RFP(kU, kD, 1);
-    fps[1] = RFP(kR, kL, 0);
-    fps[2] = RFP(kD, kU, 1);
-    fps[3] = RFP(kL, kR, 0);
-  } else if (r == kB) {
-    fps[0] = RFP(kU, kU, 0);
-    fps[1] = RFP(kL, kL, 1);
-    fps[2] = RFP(kD, kD, 0);
-    fps[3] = RFP(kR, kR, 1);
-  } else if (r == kM) {
-    fps[0] = RFP(kF, kM, 0);
-    fps[1] = RFP(kD, kM, 0);
-    fps[2] = RFP(kB, kM, 1);
-    fps[3] = RFP(kU, kM, 1);
-  } else if (r == kE) {
-    fps[0] = RFP(kF, kE, 0);
-    fps[1] = RFP(kR, kE, 0);
-    fps[2] = RFP(kB, kE, 0);
-    fps[3] = RFP(kL, kE, 0);
-  } else if (r == kS) {
-    fps[0] = RFP(kU, kE, 1);
-    fps[1] = RFP(kR, kM, 0);
-    fps[2] = RFP(kD, kE, 1);
-    fps[3] = RFP(kL, kM, 0);
+  RubiksFacePart movements[][4] = {
+    { { kF, kU, 0 }, { kL, kU, 0 }, { kB, kU, 0 }, { kR, kU, 0 } }, // U
+    { { kF, kD, 0 }, { kR, kD, 0 }, { kB, kD, 0 }, { kL, kD, 0 } }, // D
+    { { kF, kR, 0 }, { kU, kR, 0 }, { kB, kL, 1 }, { kD, kR, 1 } }, // R
+    { { kF, kL, 0 }, { kD, kL, 0 }, { kB, kR, 1 }, { kU, kL, 1 } }, // L
+    { { kU, kD, 1 }, { kR, kL, 0 }, { kD, kU, 1 }, { kL, kR, 0 } }, // F
+    { { kU, kU, 0 }, { kL, kL, 1 }, { kD, kD, 0 }, { kR, kR, 1 } }, // B
+    { { kF, kM, 0 }, { kD, kM, 0 }, { kB, kM, 1 }, { kU, kM, 1 } }, // M
+    { { kF, kE, 0 }, { kR, kE, 0 }, { kB, kE, 0 }, { kL, kE, 0 } }, // E
+    { { kU, kE, 1 }, { kR, kM, 0 }, { kD, kE, 1 }, { kL, kM, 0 } }  // S
+  };
+
+  for (int i = 0; i < 4; i++) {
+    fps[i] = movements[r][i];
   }
 }
 
 static void getFacePartOS(RubiksFacePart fp, int *offset, int *stride) {
-  int o, s;
+  int off_str[][2] = {
+    { 0, 1 }, { 6, 1 }, { 2, 3 }, { 0, 3 }, // U, D, R, L
+    { 0, 0 }, { 0, 0 },                     // F, B
+    { 1, 3 }, { 3, 1 },                     // M, E
+    { 0, 0 },                               // S
+  };
 
-  if (0) {
-  } else if (fp.part == kU) {
-    o = 0;
-    s = 1;
-  } else if (fp.part == kD) {
-    o = 6;
-    s = 1;
-  } else if (fp.part == kR) {
-    o = 2;
-    s = 3;
-  } else if (fp.part == kL) {
-    o = 0;
-    s = 3;
-  } else if (fp.part == kM) {
-    o = 1;
-    s = 3;
-  } else if (fp.part == kE) {
-    o = 3;
-    s = 1;
-  }
-
-  *offset = o;
-  *stride = s;
+  *offset = off_str[fp.part][0];
+  *stride = off_str[fp.part][1];
 }
 
 // Retorna uma parte da face do cubo.
