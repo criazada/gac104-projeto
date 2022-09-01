@@ -59,8 +59,7 @@ static void getFacePartOS(RubiksFacePart fp, int *offset, int *stride) {
 //
 // Ordem das peças é de cima para baixo e esquerda para direita.
 static void getFacePart(RubiksCube *cube, RubiksFacePart fp, RubiksColor colors[3]) {
-  int offset;
-  int stride;
+  int offset, stride;
 
   getFacePartOS(fp, &offset, &stride);
 
@@ -71,8 +70,7 @@ static void getFacePart(RubiksCube *cube, RubiksFacePart fp, RubiksColor colors[
 
 // Cola uma parte de uma face do cubo em outra
 static void setFacePart(RubiksCube *cube, RubiksFacePart fp, RubiksColor colors[3]) {
-  int offset;
-  int stride;
+  int offset, stride;
   getFacePartOS(fp, &offset, &stride);
 
   // Índice inicial de j
