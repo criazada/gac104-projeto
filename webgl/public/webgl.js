@@ -1,4 +1,5 @@
 var rotQueue = [];
+var mov = [];
 
 const rotMap = {
     'L': [[0, -1, -1], false],
@@ -12,7 +13,7 @@ const rotMap = {
     'B': [[-1, -1, 0], false]
 };
 
-function startRotation(r, rev) {
+function startRotation(r, rev, dontreverse) {
     var rotating = true;
     var start = 0;
     var rIdx = rotMap[r][0].map(v => v-1);
@@ -27,6 +28,15 @@ function startRotation(r, rev) {
         rIdx,
         reversed
     });
+
+    if (!dontreverse) {
+        mov.push([r, !rev]);
+    }
+}
+
+function solve() {
+    mov.reverse().forEach(r => startRotation(r[0], r[1], true));
+    mov = [];
 }
 
 async function loadObjUrl(url) {
@@ -106,7 +116,8 @@ async function webglMain() {
         gl.generateMipmap(gl.TEXTURE_2D);
     });
 
-    const rotDuration = 0.3;
+    var startRotDuration = 0.3;
+    var rotDuration = 0.3;
     const rotationAxis = [
         v3.fromValues(1, 0, 0),
         v3.fromValues(0, 1, 0),
@@ -114,6 +125,7 @@ async function webglMain() {
     ];
 
     var currentRotation;
+    var solving;
 
     function drawFrame(time) {
         time *= 0.001;
@@ -157,6 +169,15 @@ async function webglMain() {
 
         if (!currentRotation) {
             currentRotation = rotQueue.shift();
+            if (!currentRotation) {
+                solving = false;
+            }
+        }
+
+        if (solving) {
+            rotDuration *= 0.99;
+        } else {
+            rotDuration = startRotDuration;
         }
 
         var rotation = currentRotation;
@@ -209,6 +230,19 @@ async function webglMain() {
 
         requestAnimationFrame(drawFrame);
     }
+
+    window.addEventListener('keydown', (e) => {
+        const m = e.key.toUpperCase();
+        if (m === ',') startRotDuration += 0.005;
+        if (m === '.') startRotDuration -= 0.005;
+        if (solving) return;
+        if (rotMap[m]) startRotation(m, e.shiftKey);
+        else if (m === 'P') {
+            solving = true;
+            solve();
+        }
+    });
+
     requestAnimationFrame(drawFrame);
 }
 
