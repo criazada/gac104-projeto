@@ -128,6 +128,11 @@ async function webglMain() {
     var currentRotation;
     var solving = false;
     var scrambling = false;
+    var exploding = {
+        start: false,
+        startedAt: 0,
+    };
+    var reconstruct = false;
 
     var camPitch = Math.PI/4;
     var camYaw = Math.PI/6;
@@ -187,7 +192,7 @@ async function webglMain() {
         }
 
         if (solving) {
-            rotDuration *= 0.99;
+            rotDuration *= 0.999;
         } else if (!scrambling) {
             rotDuration = startRotDuration;
         }
@@ -214,30 +219,67 @@ async function webglMain() {
             }
         }
 
+        if (exploding.start && exploding.startedAt == 0) {
+            exploding.startedAt = time;
+        }
+
+        var world = m4.create();
+        if (reconstruct) {
+            for (var i = -1; i <= 1; i++) {
+                for (var j = -1; j <= 1; j++) {
+                    for (var k = -1; k <= 1; k++) {
+                        const idx = ((i + 1) * 3 + j + 1) * 3 + k + 1;
+                        m4.fromTranslation(world, v3.fromValues(i, j, k));
+                        instanceData[idx] = m4.clone(world);
+                    }
+                }
+            }
+            reconstruct = false;
+        }
+
         function p(a, b) {
             return Math.abs(a - b) <= 0.1;
         }
 
-        var world = m4.create();
         var tr = v3.create();
-        for (const objworld of instanceData) {
+
+        const eDelta = time-exploding.startedAt;
+        for (var i = 0; i < instanceData.length; i++) {
+            const objworld = instanceData[i];
+
             m4.identity(world);
             m4.getTranslation(tr, objworld);
             const x = tr[0], y = tr[1], z = tr[2];
-
-            if (rotation && (p(x, r[0]) || p(y, r[1]) || p(z, r[2]))) {
+            var dest = world;
+            if (exploding.start && i != 13) {
+                const noise = i*Math.PI*exploding.startedAt;
+                const rot = v3.fromValues(noise%1-0.5, (i*noise)%1-0.5, (i*i*noise)%1-0.5);
+                v3.scale(tr, tr, eDelta*eDelta);
+                m4.translate(world, world, tr);
+                m4.rotate(world, world, eDelta*((i*i*noise)%1-0.5)*3, rot);
+                if (eDelta > 1) {
+                    m4.scale(world, world, [1/eDelta, 1/eDelta, 1/eDelta]);
+                }
+                m4.multiply(world, objworld, world);
+            } else if (rotation && (p(x, r[0]) || p(y, r[1]) || p(z, r[2]))) {
                 m4.rotate(world, world, angle, axis);
-                var dest = apply ? objworld : world;
+                dest = apply ? objworld : world;
                 m4.multiply(dest, world, objworld);
                 gl.uniformMatrix4fv(u_world, false, dest);
             } else {
-                gl.uniformMatrix4fv(u_world, false, objworld);
+                dest = objworld;
             }
+            gl.uniformMatrix4fv(u_world, false, dest);
             gl.drawArrays(gl.TRIANGLES, 0, o_peca.position.length / 3);
         }
 
         if (apply) {
             currentRotation = undefined;
+        }
+
+        if (exploding.start && eDelta > 7) {
+            reconstruct = true;
+            exploding.start = false;
         }
 
         requestAnimationFrame(drawFrame);
@@ -247,7 +289,7 @@ async function webglMain() {
         const k = e.key.toUpperCase();
         if (k === ',') startRotDuration += 0.005;
         if (k === '.') startRotDuration -= 0.005;
-        if (solving || scrambling) return;
+        if (solving || scrambling || exploding.start) return;
         if (rotMap[k]) startRotation(k, e.shiftKey);
         else if (k === 'P') {
             solving = true;
@@ -260,7 +302,8 @@ async function webglMain() {
                 startRotation(rots[idx], false);
             }
         } else if (k == 'X') {
-            exploding = true;
+            exploding.start = true;
+            exploding.startedAt = 0;
         }
     });
 
@@ -269,8 +312,10 @@ async function webglMain() {
     });
 
     canvas.addEventListener('mousemove', e => {
-        camYaw -= e.movementX / 500;
-        camPitch = Math.min(Math.max(camPitch + e.movementY / 500, -Math.PI/2), Math.PI/2);
+        if (e.movementX || e.movementY) {
+            camYaw -= e.movementX / 500;
+            camPitch = Math.min(Math.max(camPitch + e.movementY / 500, -Math.PI/2), Math.PI/2);
+        }
     });
 
     canvas.addEventListener('wheel', e => {
@@ -281,5 +326,18 @@ async function webglMain() {
 }
 
 window.addEventListener('load', () => {
+    (function () {
+        var old = console.log;
+        var logger = document.getElementById('log');
+        console.log = function (message) {
+            if (typeof message == 'object') {
+                logger.innerHTML += (JSON && JSON.stringify ? JSON.stringify(message) : message) + '<br />';
+            } else {
+                logger.innerHTML += message + '<br />';
+            }
+        }
+        console.error = console.log;
+        console.warn = console.log;
+    });
     webglMain();
 });
