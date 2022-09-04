@@ -1,3 +1,34 @@
+var rotQueue = [];
+
+const rotMap = {
+    'L': [[0, -1, -1], false],
+    'M': [[1, -1, -1], false],
+    'R': [[2, -1, -1], true],
+    'D': [[-1, 0, -1], true],
+    'E': [[-1, 1, -1], true],
+    'U': [[-1, 2, -1], false],
+    'F': [[-1, -1, 2], true],
+    'S': [[-1, -1, 1], false],
+    'B': [[-1, -1, 0], false]
+};
+
+function startRotation(r, rev) {
+    var rotating = true;
+    var start = 0;
+    var rIdx = rotMap[r][0].map(v => v-1);
+    var reversed = rotMap[r][1];
+    if (rev) {
+        reversed = !reversed;
+    }
+
+    rotQueue.push({
+        rotating,
+        start,
+        rIdx,
+        reversed
+    });
+}
+
 async function loadObjUrl(url) {
     const resp = await fetch(url);
     return parseObj(await resp.text());
@@ -51,11 +82,12 @@ async function webglMain() {
     });
 
     const instanceData = [];
+
     var world = m4.create();
     for (var i = -1; i <= 1; i++) {
         for (var j = -1; j <= 1; j++) {
             for (var k = -1; k <= 1; k++) {
-                m4.fromTranslation(world, v3.fromValues(i*2, j*2, k*2));
+                m4.fromTranslation(world, v3.fromValues(i, j, k));
                 instanceData.push(m4.clone(world));
             }
         }
@@ -74,18 +106,14 @@ async function webglMain() {
         gl.generateMipmap(gl.TEXTURE_2D);
     });
 
-    var rotating = {
-        start: 0,
-        rIdx: [-1, -1, -1],
-        reversed: false,
-    };
-
     const rotDuration = 0.3;
     const rotationAxis = [
         v3.fromValues(1, 0, 0),
         v3.fromValues(0, 1, 0),
         v3.fromValues(0, 0, 1)
     ];
+
+    var currentRotation;
 
     function drawFrame(time) {
         time *= 0.001;
@@ -102,7 +130,7 @@ async function webglMain() {
         m4.perspective(projection, Math.PI/2, gl.canvas.width / gl.canvas.height, 0.01, 1000);
 
         const view = m4.create();
-        const camPos = v3.fromValues(0, 5, 10);
+        const camPos = v3.fromValues(0, 2.5, 5);
         m4.translate(view, view, camPos);
         m4.rotate(view, view, -Math.PI/6, v3.fromValues(1, 0, 0));
         m4.invert(view, view);
@@ -127,47 +155,56 @@ async function webglMain() {
         useAttribArray(gl, b_peca.a_normal);
         useAttribArray(gl, b_peca.a_texcoord);
 
-        const r = rotating.rIdx;
-        var isRotating = rotating.start > 0;
+        if (!currentRotation) {
+            currentRotation = rotQueue.shift();
+        }
 
-        const delta = time - rotating.start;
-        const apply = delta > rotDuration;
-        var angle = Math.min(Math.PI/2, delta/rotDuration * Math.PI / 2);
-        angle = rotating.reversed ? -angle : angle;
-
+        var rotation = currentRotation;
+        var r, delta, apply, angle;
         var axis;
-        if (isRotating) {
-            if (r[0] != -1) {
+        if (rotation && rotation.start == 0) {
+            rotation.start = time;
+        }
+
+        if (rotation) {
+            r = rotation.rIdx
+            delta = time - rotation.start;
+            apply = delta > rotDuration;
+            angle = Math.min(Math.PI/2, delta/rotDuration * Math.PI / 2);
+            angle = rotation.reversed ? -angle : angle;
+            if (r[0] != -2) {
                 axis = rotationAxis[0];
-            } else if (r[1] != -1) {
+            } else if (r[1] != -2) {
                 axis = rotationAxis[1];
-            } else if (r[2] != -1) {
+            } else if (r[2] != -2) {
                 axis = rotationAxis[2];
             }
         }
 
+        function p(a, b) {
+            return Math.abs(a - b) <= 0.1;
+        }
+
         var world = m4.create();
-        for (var i = 0; i < 3; i++) {
-            for (var j = 0; j < 3; j++) {
-                for (var k = 0; k < 3; k++) {
-                    var idx = (i * 3 + j) * 3 + k;
-                    m4.identity(world);
-                    const objworld = instanceData[idx];
-                    if (isRotating && (r[0] == i || r[1] == j || r[2] == k)) {
-                        m4.rotate(world, world, angle, axis);
-                        var dest = apply ? objworld : world;
-                        m4.multiply(dest, world, objworld);
-                        gl.uniformMatrix4fv(u_world, false, dest);
-                    } else {
-                        gl.uniformMatrix4fv(u_world, false, objworld);
-                    }
-                    gl.drawArrays(gl.TRIANGLES, 0, o_peca.position.length / 3);            
-                }
+        var tr = v3.create();
+        for (const objworld of instanceData) {
+            m4.identity(world);
+            m4.getTranslation(tr, objworld);
+            const x = tr[0], y = tr[1], z = tr[2];
+
+            if (rotation && (p(x, r[0]) || p(y, r[1]) || p(z, r[2]))) {
+                m4.rotate(world, world, angle, axis);
+                var dest = apply ? objworld : world;
+                m4.multiply(dest, world, objworld);
+                gl.uniformMatrix4fv(u_world, false, dest);
+            } else {
+                gl.uniformMatrix4fv(u_world, false, objworld);
             }
+            gl.drawArrays(gl.TRIANGLES, 0, o_peca.position.length / 3);
         }
 
         if (apply) {
-            rotating.start = 0;
+            currentRotation = undefined;
         }
 
         requestAnimationFrame(drawFrame);
