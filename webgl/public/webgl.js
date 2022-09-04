@@ -21,9 +21,15 @@ async function webglMain() {
 
     const u_vp = gl.getUniformLocation(program, "u_viewProjection");
     const u_world = gl.getUniformLocation(program, "u_world");
-    const u_reverseLight = gl.getUniformLocation(program, "u_reverseLightDirection");
     const u_wit = gl.getUniformLocation(program, "u_worldInverseTranspose");
     const u_color = gl.getUniformLocation(program, "u_color");
+
+    const u_lightPos = gl.getUniformLocation(program, "u_lightPos");
+    const u_lightColor = gl.getUniformLocation(program, "u_lightColor");
+    const u_viewPos = gl.getUniformLocation(program, "u_viewPos");
+    const u_ambient = gl.getUniformLocation(program, "u_ambient");
+    const u_specularStrength = gl.getUniformLocation(program, "u_specularStrength");
+    const u_shininess = gl.getUniformLocation(program, "u_shininess");
 
     const o_peca = await loadObjUrl(`obj/peca.obj`);
 
@@ -78,7 +84,8 @@ async function webglMain() {
         m4.perspective(projection, Math.PI/2, gl.canvas.width / gl.canvas.height, 0.01, 1000);
     
         const view = m4.create();
-        m4.translate(view, view, v3.fromValues(0, 5, 10));
+        const camPos = v3.fromValues(0, 5, 10);
+        m4.translate(view, view, camPos);
         m4.rotate(view, view, -Math.PI/6, v3.fromValues(1, 0, 0));
         m4.invert(view, view);
     
@@ -91,8 +98,13 @@ async function webglMain() {
         gl.useProgram(program);
         gl.uniformMatrix4fv(u_vp, false, viewProjection);
 
-        const light = v3.fromValues(0.5, 0.7, 1);
-        gl.uniform3fv(u_reverseLight, v3.normalize(light, light));
+        gl.uniform3fv(u_lightPos, [3, 3, 3]);
+        gl.uniform3fv(u_lightColor, [1, 1, 1]);
+        gl.uniform3fv(u_viewPos, camPos);
+        gl.uniform1f(u_ambient, 0.1);
+        gl.uniform1f(u_specularStrength, 0.5);
+        gl.uniform1f(u_shininess, 2);
+
         useAttribArray(gl, b_peca.a_position);
         useAttribArray(gl, b_peca.a_normal);
         gl.uniform3fv(u_color, v3.fromValues(0.8, 0.8, 0.8));
@@ -100,15 +112,13 @@ async function webglMain() {
         var world = m4.create();
 
         const rot = v3.fromValues(0, 1, 0);
+        var rotProgress = time;
 
         for (var i = -1; i < 2; i++) {
             for (var j = -1; j < 2; j++) {
                 for (var k = -1; k < 2; k++) {
                     m4.identity(world);
-                    if (j == 1) {
-                        m4.rotate(world, world, time, v3.fromValues(0, 1, 0));
-                    }
-                    // m4.rotate(world, world, time, rot);
+                    m4.rotate(world, world, rotProgress, rot);
                     m4.translate(world, world, v3.fromValues(i*2, j*2, k*2));
                     gl.uniformMatrix4fv(u_world, false, world);
 
@@ -121,32 +131,22 @@ async function webglMain() {
             }
         }
 
+        // kill me
         var map = [
-            [[ 0,  2,  0], [2, 0, 0],  [0, 0, 2], [1, 1, 0]],     // U
-            [[ 0, -2,  0], [2, 0, 0],  [0, 0, -2],  [1, 1, 1]],   // D
-            [[ 2,  0,  0], [0, 0, -2], [0, -2, 0] , [1, 0, 0]],   // R
-            [[-2,  0,  0], [0, 0, 2],  [0, -2, 0] , [1, 0.5, 0]], // L
-            [[ 0,  0,  2], [2, 0, 0],  [0, -2, 0] , [0, 0, 1]],   // F
-            [[ 0,  0, -2], [-2, 0, 0], [0, -2, 0] , [0, 1, 0]]    // B
+            [[ 0,  2,  0], [2, 0, 0],  [0, 0, 2],  [1, 1, 0]],   // U
+            [[ 0, -2,  0], [2, 0, 0],  [0, 0, -2], [1, 1, 1]],   // D
+            [[ 2,  0,  0], [0, 0, -2], [0, -2, 0], [1, 0, 0]],   // R
+            [[-2,  0,  0], [0, 0, 2],  [0, -2, 0], [1, 0.5, 0]], // L
+            [[ 0,  0,  2], [2, 0, 0],  [0, -2, 0], [0, 0, 1]],   // F
+            [[ 0,  0, -2], [-2, 0, 0], [0, -2, 0], [0, 1, 0]]    // B
         ];
 
         for (var i = 0; i < 6; i++) {
             for (var j = -1; j <= 1; j++) {
                 for (var k = -1; k <= 1; k++) {
-                    var idx = (j + 1) * 3 + k + 1;
-                    var rotate = false;
-
                     m4.identity(world);
+                    m4.rotate(world, world, rotProgress, rot);
 
-                    if (i == 0) {
-                        rotate = true;
-                    }
-                    if (i >= 2 && k == -1) {
-                        rotate = true;
-                    }
-                    if (rotate) {
-                        m4.rotate(world, world, time, v3.fromValues(0, 1, 0));
-                    }
                     const t = v3.create();
                     v3.copy(t, map[i][0]);
                     v3.scaleAndAdd(t, t, map[i][1], j);

@@ -17,26 +17,43 @@
 
         varying vec3 v_normal;
         varying vec3 v_color;
+        varying vec3 v_pos;
 
         void main() {
             gl_Position = u_viewProjection * u_world * a_position;
             v_normal = mat3(u_world) * a_normal;
             v_color = u_color;
+            v_pos = vec3(u_world * a_position);
         }
     </script>
     <script id="cubo-frag" type="x-shader/x-fragment">
         precision mediump float;
 
-        uniform vec3 u_reverseLightDirection;
+        uniform vec3 u_lightPos;
+        uniform vec3 u_lightColor;
+        uniform vec3 u_viewPos;
+        uniform float u_ambient;
+        uniform float u_specularStrength;
+        uniform float u_shininess;
 
         varying vec3 v_normal;
         varying vec3 v_color;
+        varying vec3 v_pos;
 
         void main() {
             vec3 normal = normalize(v_normal);
 
-            float light = dot(normal, u_reverseLightDirection);
-            gl_FragColor.rgb = v_color * light;
+            vec3 ambient = u_ambient * u_lightColor;
+
+            vec3 lightDir = normalize(u_lightPos - v_pos);
+            vec3 diffuse = max(dot(normal, lightDir), 0.0) * u_lightColor;
+
+            vec3 viewDir = normalize(u_viewPos - v_pos);
+            vec3 reflectDir = reflect(-lightDir, normal);
+            float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_shininess);
+            vec3 specular = u_specularStrength * spec * u_lightColor;
+
+            gl_FragColor.rgb = (ambient + diffuse + specular) * v_color;
         }
     </script>
     <script src="webgl-util.js"></script>
