@@ -1,6 +1,7 @@
 var rotQueue = [];
 var mov = [];
 
+const rots = ['L', 'M', 'R', 'D', 'E', 'U', 'F', 'S', 'B'];
 const rotMap = {
     'L': [[0, -1, -1], false],
     'M': [[1, -1, -1], false],
@@ -125,12 +126,19 @@ async function webglMain() {
     ];
 
     var currentRotation;
-    var solving;
+    var solving = false;
+    var scrambling = false;
+
+    var camPitch = Math.PI/4;
+    var camYaw = Math.PI/6;
+    var camDist = 5;
+
+    const up = v3.fromValues(0, 1, 0);
+    const origin = v3.fromValues(0, 0, 0);
+    const {sin,cos} = Math;
 
     function drawFrame(time) {
         time *= 0.001;
-
-        /** @type {WebGLRenderingContext} */
 
         gl.disable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
@@ -142,9 +150,12 @@ async function webglMain() {
         m4.perspective(projection, Math.PI/2, gl.canvas.width / gl.canvas.height, 0.01, 1000);
 
         const view = m4.create();
-        const camPos = v3.fromValues(0, 2.5, 5);
-        m4.translate(view, view, camPos);
-        m4.rotate(view, view, -Math.PI/6, v3.fromValues(1, 0, 0));
+        const camR = cos(camPitch)*camDist;
+        const camX = sin(camYaw)*camR;
+        const camY = sin(camPitch)*camDist;
+        const camZ = cos(camYaw)*camR;
+        const camPos = v3.fromValues(camX, camY, camZ);
+        m4.targetTo(view, camPos, origin, up);
         m4.invert(view, view);
 
         const viewProjection = m4.create();
@@ -156,7 +167,7 @@ async function webglMain() {
         gl.useProgram(program);
         gl.uniformMatrix4fv(u_vp, false, viewProjection);
 
-        gl.uniform3fv(u_lightPos, [5, 9, 10]);
+        gl.uniform3fv(u_lightPos, camPos);
         gl.uniform3fv(u_lightColor, [1, 1, 1]);
         gl.uniform3fv(u_viewPos, camPos);
         gl.uniform1f(u_ambient, 0.1);
@@ -171,12 +182,13 @@ async function webglMain() {
             currentRotation = rotQueue.shift();
             if (!currentRotation) {
                 solving = false;
+                scrambling = false;
             }
         }
 
         if (solving) {
             rotDuration *= 0.99;
-        } else {
+        } else if (!scrambling) {
             rotDuration = startRotDuration;
         }
 
@@ -232,15 +244,37 @@ async function webglMain() {
     }
 
     window.addEventListener('keydown', (e) => {
-        const m = e.key.toUpperCase();
-        if (m === ',') startRotDuration += 0.005;
-        if (m === '.') startRotDuration -= 0.005;
-        if (solving) return;
-        if (rotMap[m]) startRotation(m, e.shiftKey);
-        else if (m === 'P') {
+        const k = e.key.toUpperCase();
+        if (k === ',') startRotDuration += 0.005;
+        if (k === '.') startRotDuration -= 0.005;
+        if (solving || scrambling) return;
+        if (rotMap[k]) startRotation(k, e.shiftKey);
+        else if (k === 'P') {
             solving = true;
             solve();
+        } else if (k == 'K') {
+            scrambling = true;
+            rotDuration /= 10;
+            for (var i = 0; i < 40; i++) {
+                const idx = Math.round(Math.random() * (rots.length-1));
+                startRotation(rots[idx], false);
+            }
+        } else if (k == 'X') {
+            exploding = true;
         }
+    });
+
+    canvas.addEventListener('click', () => {
+        canvas.requestPointerLock();
+    });
+
+    canvas.addEventListener('mousemove', e => {
+        camYaw -= e.movementX / 500;
+        camPitch = Math.min(Math.max(camPitch + e.movementY / 500, -Math.PI/2), Math.PI/2);
+    });
+
+    canvas.addEventListener('wheel', e => {
+        camDist = Math.max(3, camDist + e.deltaY / 150);
     });
 
     requestAnimationFrame(drawFrame);
