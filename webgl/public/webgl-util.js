@@ -138,7 +138,7 @@ function parseObj(text) {
                 addVertex(parts[tri + 2]);
             }
         } else {
-            console.log(keyword);
+            // console.log(keyword);
         }
     });
     return {

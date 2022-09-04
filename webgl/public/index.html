@@ -9,21 +9,21 @@
     <script id="cubo-vert" type="x-shader/x-vertex">
         attribute vec4 a_position;
         attribute vec3 a_normal;
+        attribute vec2 a_texcoord;
 
         uniform mat4 u_viewProjection;
         uniform mat4 u_world;
         uniform mat4 u_worldInverseTranspose;
-        uniform vec3 u_color;
 
         varying vec3 v_normal;
-        varying vec3 v_color;
+        varying vec2 v_texcoord;
         varying vec3 v_pos;
 
         void main() {
             gl_Position = u_viewProjection * u_world * a_position;
             v_normal = mat3(u_world) * a_normal;
-            v_color = u_color;
             v_pos = vec3(u_world * a_position);
+            v_texcoord = a_texcoord;
         }
     </script>
     <script id="cubo-frag" type="x-shader/x-fragment">
@@ -35,9 +35,10 @@
         uniform float u_ambient;
         uniform float u_specularStrength;
         uniform float u_shininess;
+        uniform sampler2D u_texture;
 
         varying vec3 v_normal;
-        varying vec3 v_color;
+        varying vec2 v_texcoord;
         varying vec3 v_pos;
 
         void main() {
@@ -53,7 +54,8 @@
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_shininess);
             vec3 specular = u_specularStrength * spec * u_lightColor;
 
-            gl_FragColor.rgb = (ambient + diffuse + specular) * v_color;
+            gl_FragColor = texture2D(u_texture, v_texcoord);
+            gl_FragColor.rgb = (ambient + diffuse) * gl_FragColor.rgb + specular;
         }
     </script>
     <script src="webgl-util.js"></script>
