@@ -104,7 +104,7 @@ async function webglMain() {
         }
     }
 
-    const textureNames = ["obj/peca.png", "obj/peca2.png", "obj/peca3.png", "obj/peca4.png"];
+    const textureNames = ["obj/peca2.png", "obj/peca3.png", "obj/peca4.png", "obj/peca.png"];
     var textures = [];
     var texIdx = 0;
     var img = new Image();
@@ -148,6 +148,8 @@ async function webglMain() {
     const up = v3.fromValues(0, 1, 0);
     const origin = v3.fromValues(0, 0, 0);
     const {sin,cos} = Math;
+    var shininess = 128;
+    var ambient = 0.3;
 
     function drawFrame(time) {
         time *= 0.001;
@@ -182,9 +184,9 @@ async function webglMain() {
         gl.uniform3fv(u_lightPos, camPos);
         gl.uniform3fv(u_lightColor, [1, 1, 1]);
         gl.uniform3fv(u_viewPos, camPos);
-        gl.uniform1f(u_ambient, 0.1);
+        gl.uniform1f(u_ambient, ambient);
         gl.uniform1f(u_specularStrength, 0.5);
-        gl.uniform1f(u_shininess, 256);
+        gl.uniform1f(u_shininess, shininess);
 
         useAttribArray(gl, b_peca.a_position);
         useAttribArray(gl, b_peca.a_normal);
@@ -293,13 +295,16 @@ async function webglMain() {
     }
 
     window.addEventListener('keydown', (e) => {
-        handleKeyDown(e.key);
+        handleKeyDown(e.key, e.shiftKey ? -1 : 1);
     });
 
-    function handleKeyDown(e) {
-        const k = e.toUpperCase();
+    function handleKeyDown(k, s) {
+        k = k.toUpperCase();
         if (k === ',') startRotDuration += 0.005;
         if (k === '.') startRotDuration -= 0.005;
+        if (k == 'T') nextTexture();
+        if (k == 'A') incAmbient(0.01 * s);
+        if (k == 'C') incShininess(1 * s);
         if (solving || scrambling || exploding.start) return;
         if (rotMap[k]) startRotation(k, e.shiftKey);
         else if (k === 'P') {
@@ -318,6 +323,14 @@ async function webglMain() {
         } else if (k == 'T') {
             nextTexture();
         }
+    }
+
+    function incAmbient(inc) {
+        ambient += inc;
+    }
+
+    function incShininess(inc) {
+        shininess += inc;
     }
 
     function nextTexture() {
