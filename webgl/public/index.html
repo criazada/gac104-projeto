@@ -64,7 +64,7 @@
         html, body {
             height: 100%;
             margin: 0;
-            color: white;
+            font-family: -apple-system, SF UI Text, Helvetica Neue, Helvetica, Arial, sans-serif;
         }
 
         #webgl {
@@ -73,13 +73,45 @@
             display: block;
         }
 
-        body {
-            background-color: black;
+        canvas {
+            background-color: whitesmoke;
         }
+        #box{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20%;
+            height: 30%;
+            background-color: rgba(0, 0, 0, 0.712);
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+        button{
+            height: 30px;
+            border: 1px solid white;
+            border-radius: 10px;
+            color: white;
+            font-size: 15px;
+            background-color:transparent;
+        }
+        button:hover{
+            background-color: rgba(255, 255, 255, 0.212);
+        }
+
     </style>
 </head>
 <body>
-    <div id="log"></div>
-    <canvas id="webgl"></canvas>
+    <div id="box">
+        <h1>Comandos</h1>
+        <button id="solve" > Resolver</button>
+        <button id="random" > Randomizar</button>
+        <button id="explode" > Explodir</button>
+        <button id="+vel" >+</button>
+        <button id="-vel" >-</button>
+        <button id="+zoom" >+</button>
+        <button id="-zoom" >-</button>
+    </div>
+    <canvas id="webgl"></canvas>    
 </body>
 </html>
