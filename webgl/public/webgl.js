@@ -150,6 +150,7 @@ async function webglMain() {
     const {sin,cos} = Math;
     var shininess = 128;
     var ambient = 0.3;
+    var specStrength = 0.5;
 
     function drawFrame(time) {
         time *= 0.001;
@@ -185,7 +186,7 @@ async function webglMain() {
         gl.uniform3fv(u_lightColor, [1, 1, 1]);
         gl.uniform3fv(u_viewPos, camPos);
         gl.uniform1f(u_ambient, ambient);
-        gl.uniform1f(u_specularStrength, 0.5);
+        gl.uniform1f(u_specularStrength, specStrength);
         gl.uniform1f(u_shininess, shininess);
 
         useAttribArray(gl, b_peca.a_position);
@@ -305,8 +306,9 @@ async function webglMain() {
         if (k == 'T') nextTexture();
         if (k == 'A') incAmbient(0.01 * s);
         if (k == 'C') incShininess(1 * s);
+        if (k == 'G') incSpecStrength(0.01 * s);
         if (solving || scrambling || exploding.start) return;
-        if (rotMap[k]) startRotation(k, e.shiftKey);
+        if (rotMap[k]) startRotation(k, s == -1);
         else if (k === 'P') {
             solving = true;
             solve();
@@ -320,8 +322,6 @@ async function webglMain() {
         } else if (k == 'X') {
             exploding.start = true;
             exploding.startedAt = 0;
-        } else if (k == 'T') {
-            nextTexture();
         }
     }
 
@@ -331,6 +331,10 @@ async function webglMain() {
 
     function incShininess(inc) {
         shininess += inc;
+    }
+
+    function incSpecStrength(inc) {
+        specStrength += inc;
     }
 
     function nextTexture() {
