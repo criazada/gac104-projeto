@@ -320,9 +320,7 @@ async function webglMain() {
         canvas.removeEventListener('mousemove', handleMouseMove);
     });
 
-    canvas.addEventListener('mousemove', e => {
-        handleMouseMove(e);
-    });
+   
 
     function handleMouseMove(e) {
         if (e.movementX || e.movementY) {
