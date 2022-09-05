@@ -60,6 +60,7 @@
     </script>
     <script src="webgl-util.js"></script>
     <script src="webgl.js"></script>
+
     <style>
         html, body {
             height: 100%;
@@ -72,25 +73,38 @@
             height: 100%;
             display: block;
         }
-
         canvas {
             background-color: whitesmoke;
         }
         #box{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
             position: absolute;
             top: 10px;
             right: 10px;
             width: 20%;
-            height: 30%;
-            background-color: rgba(0, 0, 0, 0.712);
-            border-radius: 10px;
+            min-height: 30%;
             color: white;
-            text-align: center;
+            background-color: rgba(0, 0, 0, 0.521);
+        }
+        #boxButtons{
+            width: 100%;
+            display: flex;
+            justify-content: space-evenly;
+            flex-direction: row;
+            flex-wrap: wrap;
         }
         button{
-            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-top: 10px;
+            width: 100px;
+            height: 40px;
             border: 1px solid white;
-            border-radius: 10px;
             color: white;
             font-size: 15px;
             background-color:transparent;
@@ -99,18 +113,70 @@
             background-color: rgba(255, 255, 255, 0.212);
         }
 
+        h1{
+            margin-bottom: -3px;
+        }
+        #containerSmall{
+            width: 100%;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        #containerSmall div{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #containerSmall div div{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+        }
+        .small{
+            text-align: center;
+            margin: -10px 5px 20px 5px;
+            height: 20px;
+            width: 20px;
+        }
+        p{
+            text-align: center;
+            margin: 5px 0;
+        }
+
     </style>
 </head>
 <body>
     <div id="box">
         <h1>Comandos</h1>
-        <button id="solve" > Resolver</button>
-        <button id="random" > Randomizar</button>
-        <button id="explode" > Explodir</button>
-        <button id="+vel" >+</button>
-        <button id="-vel" >-</button>
-        <button id="+zoom" >+</button>
-        <button id="-zoom" >-</button>
+        <p>L, M, R, D, E, U, F, S, B <br> Rotancionam o cubo</p>
+        <div id="boxButtons">
+            <button id="solve" > Resolver</button>
+            <button id="random" > Randomizar</button>
+            <button id="explode" > Explodir</button>
+            <button id="texture" > Trocar Textura</button>
+        </div>
+        <div id="containerSmall">
+            <div class="boxSmall">
+                <h3>Velocidade</h3>
+                <div>
+                    <button id="+vel" class="small" >+</button>
+                    <button id="-vel" class="small" >-</button>
+                </div>
+            </div>
+            <div class="boxSmall">
+                <h3>Zoom</h3>
+                <div>
+                    <button id="+zoom" class="small" >+</button>
+                    <button id="-zoom" class="small">-</button>
+                </div>
+            </div>    
+            
+        </div>
+      
     </div>
     <canvas id="webgl"></canvas>    
 </body>

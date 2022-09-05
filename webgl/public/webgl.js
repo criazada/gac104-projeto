@@ -359,6 +359,8 @@ async function webglMain() {
     const solveButton = document.getElementById('solve');
     const randomButton = document.getElementById('random');
     const explodeButton = document.getElementById('explode');
+    const textureButton = document.getElementById('texture');
+
     const minusVelButton = document.getElementById('-vel');
     const plusVelButton = document.getElementById('+vel');
     const minusZoomButton = document.getElementById('-zoom');
@@ -375,6 +377,10 @@ async function webglMain() {
     
     explodeButton.addEventListener('click', () => {
         handleKeyDown('x');
+    });
+
+    textureButton.addEventListener('click', () => {
+        handleKeyDown('t');
     });
 
     plusVelButton.addEventListener('click', () => {
