@@ -135,6 +135,7 @@
             justify-content: center;
             align-items: center;
             flex-direction: row;
+            flex-wrap: wrap;
         }
         .small{
             text-align: center;
@@ -152,7 +153,24 @@
 <body>
     <div id="box">
         <h1>Comandos</h1>
-        <p>L, M, R, D, E, U, F, S, B <br> Rotancionam o cubo</p>
+        <p>L, M, R, D, E, U, F, S, B <br> </p>
+
+        <div id="containerSmall">
+            <div class="boxSmall">
+                <h3>Rotancionam o faces:</h3>
+                <div  style="margin: 0 20px ;">
+                    <button id="L" class="small" >L</button>
+                    <button id="M" class="small" >M</button>
+                    <button id="R" class="small" >R</button>
+                    <button id="D" class="small" >D</button>
+                    <button id="E" class="small" >E</button>
+                    <button id="U" class="small" >U</button>
+                    <button id="F" class="small" >F</button>
+                    <button id="S" class="small" >S</button>
+                    <button id="B" class="small" >B</button>
+                </div>
+            </div>
+        </div>
         <div id="boxButtons">
             <button id="solve" > Resolver</button>
             <button id="random" > Randomizar</button>
@@ -173,7 +191,8 @@
                     <button id="+zoom" class="small" >+</button>
                     <button id="-zoom" class="small">-</button>
                 </div>
-            </div>    
+            </div> 
+               
             
         </div>
       

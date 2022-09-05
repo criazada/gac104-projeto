@@ -370,6 +370,27 @@ async function webglMain() {
     const minusZoomButton = document.getElementById('-zoom');
     const plusZoomButton = document.getElementById('+zoom');
 
+    const LButton = document.getElementById('L');
+    const MButton = document.getElementById('M');
+    const RButton = document.getElementById('R');
+    const DButton = document.getElementById('D');
+    const EButton = document.getElementById('E');
+    const UButton = document.getElementById('U');
+    const FButton = document.getElementById('F');
+    const SButton = document.getElementById('S');
+    const BButton = document.getElementById('B');
+
+
+    LButton.addEventListener('click', () => handleKeyDown('L'));
+    MButton.addEventListener('click', () => handleKeyDown('M'));
+    RButton.addEventListener('click', () => handleKeyDown('R'));
+    DButton.addEventListener('click', () => handleKeyDown('D'));
+    EButton.addEventListener('click', () => handleKeyDown('E'));
+    UButton.addEventListener('click', () => handleKeyDown('U'));
+    FButton.addEventListener('click', () => handleKeyDown('F'));
+    SButton.addEventListener('click', () => handleKeyDown('S'));
+    BButton.addEventListener('click', () => handleKeyDown('B'));
+    
     
     solveButton.addEventListener('click', () => {
         handleKeyDown('p');
