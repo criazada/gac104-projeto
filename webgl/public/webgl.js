@@ -104,18 +104,25 @@ async function webglMain() {
         }
     }
 
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255,255,0,255,255,0,0,0,255,255,0,255,255]))
-    gl.generateMipmap(gl.TEXTURE_2D);
+    const textureNames = ["obj/peca.png", "obj/peca2.png", "obj/peca3.png", "obj/peca4.png"];
+    var textures = [];
+    var texIdx = 0;
     var img = new Image();
-    img.src = "obj/peca.png";
-    img.addEventListener("load", function() {
+    var imgIdx = 0;
+    function loadImages() {
+        var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         gl.generateMipmap(gl.TEXTURE_2D);
-    });
+        textures.push(texture);
+
+        imgIdx += 1;
+        if (imgIdx >= textureNames.length) return;
+        img.src = textureNames[imgIdx];
+    }
+    img.addEventListener("load", loadImages);
+    img.src = textureNames[imgIdx];
 
     var startRotDuration = 0.3;
     var rotDuration = 0.3;
@@ -308,7 +315,14 @@ async function webglMain() {
         } else if (k == 'X') {
             exploding.start = true;
             exploding.startedAt = 0;
+        } else if (k == 'T') {
+            nextTexture();
         }
+    }
+
+    function nextTexture() {
+        texIdx = (texIdx + 1) % textures.length;
+        gl.bindTexture(gl.TEXTURE_2D, textures[texIdx]);
     }
 
     canvas.addEventListener('mousedown', () => {
