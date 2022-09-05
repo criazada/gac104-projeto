@@ -244,7 +244,11 @@ async function webglMain() {
     }
 
     window.addEventListener('keydown', (e) => {
-        const k = e.key.toUpperCase();
+        handleKeyDown(e.key);
+    });
+
+    function handleKeyDown(e) {
+        const k = e.toUpperCase();
         if (k === ',') startRotDuration += 0.005;
         if (k === '.') startRotDuration -= 0.005;
         if (solving || scrambling) return;
@@ -262,21 +266,64 @@ async function webglMain() {
         } else if (k == 'X') {
             exploding = true;
         }
+    }
+
+    canvas.addEventListener('mousedown', () => {
+        canvas.addEventListener('mousemove', handleMouseMove);
     });
 
-    canvas.addEventListener('click', () => {
-        canvas.requestPointerLock();
+    canvas.addEventListener('mouseup', e => {
+        e.preventDefault();
+        canvas.removeEventListener('mousemove', handleMouseMove);
     });
 
-    canvas.addEventListener('mousemove', e => {
+    function handleMouseMove(e) {
         camYaw -= e.movementX / 500;
         camPitch = Math.min(Math.max(camPitch + e.movementY / 500, -Math.PI/2), Math.PI/2);
+    }
+
+    const solveButton = document.getElementById('solve');
+    const randomButton = document.getElementById('random');
+    const explodeButton = document.getElementById('explode');
+    const minusVelButton = document.getElementById('-vel');
+    const plusVelButton = document.getElementById('+vel');
+    const minusZoomButton = document.getElementById('-zoom');
+    const plusZoomButton = document.getElementById('+zoom');
+
+    
+    solveButton.addEventListener('click', () => {
+        handleKeyDown('p');
+    });
+
+    randomButton.addEventListener('click', () => {
+        handleKeyDown('k');
+    });
+    
+    explodeButton.addEventListener('click', () => {
+        handleKeyDown('x');
+    });
+
+    plusVelButton.addEventListener('click', () => {
+        startRotDuration -= 0.005;
+    });
+
+    minusVelButton.addEventListener('click', () => {
+        startRotDuration += 0.005;
+    });
+    minusZoomButton.addEventListener('click', () => {
+        handelWheel(130);
+    });
+    plusZoomButton.addEventListener('click', () => {
+        handelWheel(-130);
     });
 
     canvas.addEventListener('wheel', e => {
-        camDist = Math.max(3, camDist + e.deltaY / 150);
+        handelWheel(e.deltaY);
     });
 
+    function handelWheel(vel) {
+        camDist = Math.max(3, camDist + vel / 150);
+    }
     requestAnimationFrame(drawFrame);
 }
 
