@@ -426,6 +426,13 @@ async function webglMain() {
         handelWheel(e.deltaY);
     });
 
+    document.getElementById('+amb').addEventListener('click', () => incAmbient(0.1));
+    document.getElementById('-amb').addEventListener('click', () => incAmbient(-0.1));
+    document.getElementById('+shin').addEventListener('click', () => incShininess(4));
+    document.getElementById('-shin').addEventListener('click', () => incShininess(-4));
+    document.getElementById('+spec').addEventListener('click', () => incSpecStrength(0.1));
+    document.getElementById('-spec').addEventListener('click', () => incSpecStrength(-0.1));
+
     function handelWheel(vel) {
         camDist = Math.max(3, camDist + vel / 150);
     }
